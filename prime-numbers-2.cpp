@@ -5,6 +5,7 @@
 #include <vector>
 #include <time.h>
 #include <algorithm>
+#include <bits/stdc++.h>
 
 
 using namespace std;
@@ -15,36 +16,74 @@ int num_threads = 8;
 
 void fill_tab_with_range(int tab[], int start, int end){
     int value = start;
-    for(int i=0;i<(end-start);i++){
+    for(int i=0;i<=(end-start);i++){
         tab[i]=value;
         value++;
     }
 }
 
+void simpleSieve(int limit, vector<int>& primes){
+    bool mark[limit+1];
+    memset(mark, true, sizeof(mark));
+    for(int i = 2; i <= limit; i++){
+        if(mark[i] == true){
+            primes.push_back(i);
+            for(int j = i; j<= limit; j += i){
+                mark[j] = false;
+            }
+        }
+    }
+}
+
+void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
+
+    for(int prime : primes){
+
+        int low_limit = floor(low / prime) * prime;
+        if(low_limit < low) low_limit += prime; 
+        // if(low_limit == low) low_limit += prime; 
+
+        for(int i = low_limit; i <= high; i += prime){
+            tab[i - low] = -1;
+        }
+    }
+}
+
+void printVector(vector<int> vec){
+    for(int i=0; i<vec.size(); i++){
+        cout<< vec[i] << " ";
+    }
+    cout<<endl;
+}
+
+void printPrimes(int tab[], int elements){
+    for(int i=0; i< elements; i++){
+        if(tab[i] != -1){
+            cout << tab[i] << " ";
+        }
+    }
+    cout << endl;
+}
+
 int main(int argc, char *argv[]){
 
     omp_set_num_threads(num_threads);
-
+    
     int start = atoi(argv[1]);
     int end = atoi(argv[2]);
-    int tab_numbers[end-start];
+    int limit = ceil(sqrt(end));
+    int elements = (end-start) + 1;
+    vector<int> primes;
+    int tab_numbers[elements];
+    
     fill_tab_with_range(tab_numbers, start, end);
-    for(int i = 0; i<(end-start); i++){
-        cout << tab_numbers[i] << endl;
-    }
-
+    simpleSieve(limit, primes);
+    primesInRange(start, end, primes, tab_numbers);
+    
     wall_time_start = omp_get_wtime();
     time_start = clock();
 
-    for(int i = start; i <= end; i++){
-        if(i == 0){
-            continue;
-        }
-        int max_divider = sqrt(i);
-
-        
-    }
-
+    printPrimes(tab_numbers, elements);
     
     time_stop = clock();
     wall_time_stop = omp_get_wtime();
