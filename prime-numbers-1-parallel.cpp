@@ -30,6 +30,7 @@ int num_threads = 8;
 
 int main(int argc, char *argv[]){
 
+    omp_set_num_threads(num_threads);
 
     int start = atoi(argv[1]);
     int end = atoi(argv[2]);
@@ -38,15 +39,21 @@ int main(int argc, char *argv[]){
     wall_time_start = omp_get_wtime();
     time_start = clock();
 
-    for(int i = start; i <= end; ++i){
-        if((i != 2 && i % 2 == 0) || i == 1){
-            continue;
+    #pragma omp parallel
+    {
+        #pragma omp for nowait
+        for(int i = start; i <= end; ++i){
+            if((i != 2 && i % 2 == 0) || i == 1){
+                continue;
+            }
+            if(is_prime(i)){
+                #pragma omp critical
+                {
+                    primes.push_back(i);
+                }
+            }
         }
-        if(is_prime(i)){
-                primes.push_back(i);
-        }
-    }
-    
+    } 
     time_stop = clock();
     wall_time_stop = omp_get_wtime();
     sort(primes.begin(), primes.end());

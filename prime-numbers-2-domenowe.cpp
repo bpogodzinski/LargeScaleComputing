@@ -36,15 +36,16 @@ void simpleSieve(int limit, vector<int>& primes){
 }
 
 void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
-    for(int prime : primes){
-        // 10 - 50
-        // 10/2 = 5 5*5 = 
-        int low_limit = floor(low / prime) * prime;
-        if(low_limit < low) low_limit += prime; 
-        // if(low_limit == low) low_limit += prime; 
-
-        for(int i = low_limit; i <= high; i += prime){
-            tab[i - low] = -1;
+    #pragma omp parallel
+    {
+        for(int prime : primes){
+            
+            int low_limit = floor(low / prime) * prime;
+            if(low_limit < low) low_limit += prime; 
+            #pragma omp for schedule(dynamic) nowait
+            for(int i = low_limit; i <= high; i += prime){
+                tab[i - low] = -1;
+            }
         }
     }
 }
@@ -74,19 +75,20 @@ int main(int argc, char *argv[]){
     int limit = ceil(sqrt(end));
     int elements = (end-start) + 1;
     vector<int> primes;
-    int *tab_numbers = new int [elements];
+    int* tab_numbers = new int[elements];
     
-    wall_time_start = omp_get_wtime();
-    time_start = clock();
 
     fill_tab_with_range(tab_numbers, start, end);
     simpleSieve(limit, primes);
-    primesInRange(start, end, primes, tab_numbers);
 
-    ///printPrimes(tab_numbers, elements);
-    
+    wall_time_start = omp_get_wtime();
+    time_start = clock();
+    primesInRange(start, end, primes, tab_numbers);
     time_stop = clock();
     wall_time_stop = omp_get_wtime();
+
+    printPrimes(tab_numbers, elements);
+    
     
     cout << "Czas przetwarzania zegarowego: " << (wall_time_stop - wall_time_start) << endl;
     cout << "Czas przetwarzania procesora: " << double(time_stop-time_start)/CLOCKS_PER_SEC << endl;
