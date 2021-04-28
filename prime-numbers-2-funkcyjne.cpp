@@ -43,7 +43,9 @@ void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
             int low_limit = floor(low / prime) * prime;
             if(low_limit < low) low_limit += prime; 
             for(int i = low_limit; i <= high; i += prime){
-                tab[i - low] = -1;
+                if(tab[i - low] != -1){
+                    tab[i - low] = -1;
+                }
             }
         }
     }
