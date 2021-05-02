@@ -38,7 +38,22 @@ void simpleSieve(int limit, vector<int>& primes){
 void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
     #pragma omp parallel
     {
+        int id = omp_get_thread_num();
+        int size = omp_get_thread_limit();
+        // 0, 1, 2, 3
+        // 1000
+        // 1000 / 4 (size) = 250 na jeden wątek
+        // nową tablice [250]
+        // memcopy do nowej tablicy
+        // id 0 <- [0 * 250, 0*250+250-1]
+        // id 1 <- [1 * 250, 1*250+250-1]
+        // id 2 <- [2 * 250, 2*250+250-1]
+        // id 3 <- [3 * 250, 3*250+250-1]
+        // podział tablicy na podtablice
+        // zapis do lokalnej pamięci wątku
+
         for(int prime : primes){
+            // każdy wątek przyjmuje prime i wykreśla wartości ze swoich tablic
             
             int low_limit = floor(low / prime) * prime;
             if(low_limit < low) low_limit += prime; 
@@ -47,6 +62,7 @@ void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
                 tab[i - low] = -1;
             }
         }
+        // zlepienie / oczytanie pozostałych wartości z tablic
     }
 }
 
@@ -65,6 +81,17 @@ void printPrimes(int tab[], int elements){
     }
     cout << endl;
 }
+void siveSingleBlock(){
+    
+}
+
+void blockwise(int last_number, int slice_size){
+    for(int from = 2; from <= last_number; from += slice_size){
+        int to = from + slice_size;
+        if(to > last_number) to = last_number;
+        //siveSingleBlock(from,to);
+    }
+}
 
 int main(int argc, char *argv[]){
 
@@ -77,7 +104,6 @@ int main(int argc, char *argv[]){
     vector<int> primes;
     int* tab_numbers = new int[elements];
     
-
     fill_tab_with_range(tab_numbers, start, end);
     simpleSieve(limit, primes);
 
@@ -87,7 +113,7 @@ int main(int argc, char *argv[]){
     time_stop = clock();
     wall_time_stop = omp_get_wtime();
 
-    printPrimes(tab_numbers, elements);
+    // printPrimes(tab_numbers, elements);
     
     
     cout << "Czas przetwarzania zegarowego: " << (wall_time_stop - wall_time_start) << endl;
