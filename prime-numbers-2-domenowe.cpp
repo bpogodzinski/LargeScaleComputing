@@ -12,7 +12,6 @@ using namespace std;
 
 clock_t time_start, time_stop;
 double wall_time_start, wall_time_stop;
-int num_threads = 8;
 
 void fill_tab_with_range(int tab[], int start, int end){
     int value = start;
@@ -35,37 +34,6 @@ void simpleSieve(int limit, vector<int>& primes){
     }
 }
 
-void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
-    #pragma omp parallel
-    {
-        int id = omp_get_thread_num();
-        int size = omp_get_thread_limit();
-        // 0, 1, 2, 3
-        // 1000
-        // 1000 / 4 (size) = 250 na jeden wątek
-        // nową tablice [250]
-        // memcopy do nowej tablicy
-        // id 0 <- [0 * 250, 0*250+250-1]
-        // id 1 <- [1 * 250, 1*250+250-1]
-        // id 2 <- [2 * 250, 2*250+250-1]
-        // id 3 <- [3 * 250, 3*250+250-1]
-        // podział tablicy na podtablice
-        // zapis do lokalnej pamięci wątku
-
-        for(int prime : primes){
-            // każdy wątek przyjmuje prime i wykreśla wartości ze swoich tablic
-            
-            int low_limit = floor(low / prime) * prime;
-            if(low_limit < low) low_limit += prime; 
-            #pragma omp for schedule(dynamic) nowait
-            for(int i = low_limit; i <= high; i += prime){
-                tab[i - low] = -1;
-            }
-        }
-        // zlepienie / oczytanie pozostałych wartości z tablic
-    }
-}
-
 void printVector(vector<int> vec){
     for(int i=0; i<vec.size(); i++){
         cout<< vec[i] << " ";
@@ -73,48 +41,63 @@ void printVector(vector<int> vec){
     cout<<endl;
 }
 
-void printPrimes(int tab[], int elements){
-    for(int i=0; i< elements; i++){
-        if(tab[i] != -1){
-            cout << tab[i] << " ";
+vector<int> singleSiveBlock(const vector<int> &primes, const int from, const int to){
+    int elements = (to - from) + 1;
+    int* tab_numbers = new int [elements];
+    fill_tab_with_range(tab_numbers, from, to);
+    vector<int> results;
+
+    for(int prime : primes){
+        int low_limit = floor(from / prime) * prime;
+        if(low_limit < from) low_limit += prime; 
+        for(int i = low_limit; i <= to; i += prime){
+            tab_numbers[i - from] = -1;
         }
     }
-    cout << endl;
-}
-void siveSingleBlock(){
-    
-}
-
-void blockwise(int last_number, int slice_size){
-    for(int from = 2; from <= last_number; from += slice_size){
-        int to = from + slice_size;
-        if(to > last_number) to = last_number;
-        //siveSingleBlock(from,to);
+    for(int i = 0; i < elements; i++){
+        if(tab_numbers[i] != -1){
+            results.push_back(tab_numbers[i]);
+        }
     }
+    
+    return results;
 }
 
 int main(int argc, char *argv[]){
 
-    omp_set_num_threads(num_threads);
-    
     int start = atoi(argv[1]);
     int end = atoi(argv[2]);
+    int sliceSize = atoi(argv[3]);
+    int num_threads = atoi(argv[4]);
+    omp_set_num_threads(num_threads);
+    
     int limit = ceil(sqrt(end));
     int elements = (end-start) + 1;
     vector<int> primes;
-    int* tab_numbers = new int[elements];
+    vector<int> result;
     
-    fill_tab_with_range(tab_numbers, start, end);
     simpleSieve(limit, primes);
 
     wall_time_start = omp_get_wtime();
     time_start = clock();
-    primesInRange(start, end, primes, tab_numbers);
+    
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(dynamic)
+        for (int from = start; from <= end; from += sliceSize){
+            int to = from + sliceSize;
+            if (to > end) to = end;
+            
+            vector<int> slice_result = singleSiveBlock(primes, from, to);
+            #pragma omp critical
+            {
+                result.insert(result.end(),slice_result.begin(), slice_result.end());
+            }
+        }
+    }
+  
     time_stop = clock();
     wall_time_stop = omp_get_wtime();
-
-    // printPrimes(tab_numbers, elements);
-    
     
     cout << "Czas przetwarzania zegarowego: " << (wall_time_stop - wall_time_start) << endl;
     cout << "Czas przetwarzania procesora: " << double(time_stop-time_start)/CLOCKS_PER_SEC << endl;

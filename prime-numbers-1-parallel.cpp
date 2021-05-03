@@ -26,14 +26,14 @@ void print_vector(vector<int> data){
 
 clock_t time_start, time_stop;
 double wall_time_start, wall_time_stop;
-int num_threads = 8;
 
 int main(int argc, char *argv[]){
 
-    omp_set_num_threads(num_threads);
-
     int start = atoi(argv[1]);
     int end = atoi(argv[2]);
+    int num_threads = atoi(argv[3]);
+    omp_set_num_threads(num_threads);
+
     vector<int> primes;
     
     wall_time_start = omp_get_wtime();

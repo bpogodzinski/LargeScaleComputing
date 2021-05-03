@@ -37,11 +37,8 @@ void simpleSieve(int limit, vector<int>& primes){
 
 void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
     for(int prime : primes){
-        // 10 - 50
-        // 10/2 = 5 5*5 = 
         int low_limit = floor(low / prime) * prime;
         if(low_limit < low) low_limit += prime; 
-        // if(low_limit == low) low_limit += prime; 
 
         for(int i = low_limit; i <= high; i += prime){
             tab[i - low] = -1;
