@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
 
     #pragma omp parallel
     {
-        #pragma omp for nowait
+        #pragma omp for schedule(dynamic)
         for(int i = start; i <= end; ++i){
             if((i != 2 && i % 2 == 0) || i == 1){
                 continue;

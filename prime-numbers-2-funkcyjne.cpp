@@ -38,7 +38,7 @@ void simpleSieve(int limit, vector<int>& primes){
 void primesInRange(int low, int high, const vector<int> &primes, int tab[]){
     #pragma omp parallel
     {
-        #pragma omp for schedule(dynamic) nowait
+        #pragma omp for schedule(dynamic)
         for(int prime : primes){
             int low_limit = floor(low / prime) * prime;
             if(low_limit < low) low_limit += prime; 
