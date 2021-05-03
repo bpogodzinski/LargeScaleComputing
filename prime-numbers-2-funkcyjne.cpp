@@ -12,7 +12,7 @@ using namespace std;
 
 clock_t time_start, time_stop;
 double wall_time_start, wall_time_stop;
-int num_threads = 8;
+
 
 void fill_tab_with_range(int tab[], int start, int end){
     int value = start;
@@ -68,11 +68,10 @@ void printPrimes(int tab[], int elements){
 }
 
 int main(int argc, char *argv[]){
-
-    omp_set_num_threads(num_threads);
-    
     int start = atoi(argv[1]);
     int end = atoi(argv[2]);
+    int num_threads = atoi(argv[3]);
+    omp_set_num_threads(num_threads);
     int limit = ceil(sqrt(end));
     int elements = (end-start) + 1;
     vector<int> primes;
